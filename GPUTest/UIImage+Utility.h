@@ -12,9 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface UIImage (Utility)
 
-+ (UIImage *)imageFromColor:(UIColor *)color rect:(CGRect)rect;
-
-- (UIImage *)imageByDrawingLeftHalfBlackOnImage:(UIImage *)image;
++ (UIImage *)imageFromColor:(UIColor *)color size:(CGSize)size;
++ (UIImage *)imageByDrawingLeftHalfBlackOnImage:(UIImage *)image;
 - (void)saveToFile:(NSString *)filename;
 @end
 

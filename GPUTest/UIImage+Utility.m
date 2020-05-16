@@ -7,13 +7,15 @@
 //
 
 #import "UIImage+Utility.h"
+#define DEBUG_IMG
 
 @implementation UIImage (Utility)
 
 
-+ (UIImage *)imageFromColor:(UIColor *)color rect:(CGRect)rect {
-//    CGRect rect = CGRectMake(0, 0, 1, 1);
-    UIGraphicsBeginImageContext(rect.size);
++ (UIImage *)imageFromColor:(UIColor *)color size:(CGSize)size
+{
+    CGRect rect = CGRectMake(0, 0, size.width, size.height);
+    UIGraphicsBeginImageContext(size);
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetFillColorWithColor(context, [color CGColor]);
     CGContextFillRect(context, rect);
@@ -22,7 +24,7 @@
     return image;
 }
  
-- (UIImage *)imageByDrawingLeftHalfBlackOnImage:(UIImage *)image
++ (UIImage *)imageByDrawingLeftHalfBlackOnImage:(UIImage *)image
 {
     // begin a graphics context of sufficient size
     UIGraphicsBeginImageContext(image.size);
@@ -38,15 +40,6 @@
      
     CGContextFillRect(ctx, CGRectMake(0, 0, image.size.width / 2, image.size.height));
 
-    // make circle rect 5 px from border
-//    CGRect circleRect = CGRectMake(0, 0,
-//                image.size.width,
-//                image.size.height);
-//    circleRect = CGRectInset(circleRect, 5, 5);
-//
-//    // draw circle
-//    CGContextStrokeEllipseInRect(ctx, circleRect);
-
     // make image out of bitmap context
     UIImage *retImage = UIGraphicsGetImageFromCurrentImageContext();
 
@@ -55,8 +48,10 @@
 
     return retImage;
 }
+
 - (void)saveToFile:(NSString *)filename
 {
+#ifndef DEBUG_IMG
     // Create path.
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *filePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
@@ -64,5 +59,6 @@
     NSLog(@"file saved: %@", filePath);
     // Save image.
     [UIImagePNGRepresentation(self) writeToFile:filePath atomically:YES];
+#endif
 }
 @end
