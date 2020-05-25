@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import "UIImage+Utility.h"
 #import "GPUImage.h"
-
+ 
 #define COLOR_1 ([UIColor colorWithRed:205/255.0 green:52/255.0 blue:37/255.0 alpha:1])
 #define COLOR_2 ([UIColor colorWithRed:0/255.0 green:102/255.0 blue:255/255.0 alpha:1])
 
@@ -18,7 +18,8 @@
 @property (strong, nonatomic) IBOutlet UIButton *btnColor1;
 @property (strong, nonatomic) IBOutlet UIButton *btnColor2;
 @property (strong, nonatomic) IBOutlet UIButton *btnOriginal;
-@property (strong, nonatomic) IBOutlet UIImageView *imgView;
+@property (strong, nonatomic) IBOutlet UIImageView *imgFullColorView;
+@property (strong, nonatomic) IBOutlet UIImageView *imgMaskView;
 @property (strong, nonatomic) IBOutlet UISlider *sliderHue;
 
 @property (strong, nonatomic) UIImage *imgInput;
@@ -34,7 +35,9 @@
     
     self.imgInput = [UIImage imageNamed:@"Image"];
     self.imgResult = nil;
-    self.imgView.image = self.imgInput;
+    self.imgFullColorView.image = self.imgInput;
+    self.imgMaskView.image = nil;
+    self.view.backgroundColor = [UIColor greenColor];
     
     [self.btnColor1 setBackgroundImage:[UIImage imageFromColor:COLOR_1 size:CGSizeMake(1, 1)] forState:UIControlStateNormal];
     
@@ -76,22 +79,47 @@
     }
     [imgMask saveToFile:@"imgMask.png"];
     
-    
-    
-    // B. imgMask -> Gray imgMask
+    // B. imgAlphaMask -> imgBlackWhiteMask
+    UIImage *imgAlphaMask = imgMask;
+    UIImage *imgBlackWhiteMask = nil;
     {
-        GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgMask];
+        GPUImagePicture *imgSource = [[GPUImagePicture alloc]
+                                      initWithImage:imgAlphaMask];
 
-       GPUImageGrayscaleFilter *grayscaleFilter = [GPUImageGrayscaleFilter new];
- 
-        [imgSourceMask addTarget:grayscaleFilter];
-        [grayscaleFilter useNextFrameForImageCapture];
-        [imgSourceMask processImage];
+        GPUImageColorMatrixFilter *colorMatrixFilter = [GPUImageColorMatrixFilter new];
+        colorMatrixFilter.colorMatrix = (GPUMatrix4x4){
+            {0, 0, 0, 1},
+            {0, 0, 0, 1},
+            {0, 0, 0, 1},
+            {1, 1, 1, 1}};
         
-        imgMask = [grayscaleFilter imageFromCurrentFramebuffer];
+        [imgSource addTarget:colorMatrixFilter];
+        [colorMatrixFilter useNextFrameForImageCapture];
+        [imgSource processImage];
+
+        imgBlackWhiteMask = [colorMatrixFilter imageFromCurrentFramebuffer];
+        
+        
+        // .....
+        UIImage *imgBlack = [UIImage imageFromColor:[UIColor blackColor] size:imgBlackWhiteMask.size];
+        {
+            GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:imgBlack];
+            GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgBlackWhiteMask];
+
+            GPUImageNormalBlendFilter *maskFilter = [GPUImageNormalBlendFilter new];
+
+            [imgSource addTarget:maskFilter];
+            [imgSource processImage];
+
+            [maskFilter useNextFrameForImageCapture];
+
+            [imgSourceMask addTarget:maskFilter];
+            [imgSourceMask processImage];
+
+            imgBlackWhiteMask = [maskFilter imageFromCurrentFramebuffer];
+        }
     }
-    [imgMask saveToFile:@"imgMask_Grayscaled.png"];
-    
+    [imgBlackWhiteMask saveToFile:@"imgBlackWhiteMask.png"];
     
     // inputimage -> Grayscaled
     UIImage *imgGrayscaled = nil;
@@ -107,6 +135,34 @@
        imgGrayscaled = [grayscaleFilter imageFromCurrentFramebuffer];
     }
     [imgGrayscaled saveToFile:@"imgGrayscaled.png"];
+    
+    
+    // imgGrayscaled + blackwhite mask
+    {
+        GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:imgGrayscaled];
+        GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgBlackWhiteMask];
+        
+        GPUImageMaskFilter *maskFilter = [GPUImageMaskFilter new];
+        [imgSource addTarget:maskFilter];
+        [imgSource processImage];
+        
+        [maskFilter useNextFrameForImageCapture];
+        
+        [imgSourceMask addTarget:maskFilter];
+        [imgSourceMask processImage];
+        
+        imgResult = [maskFilter imageFromCurrentFramebuffer];
+    }
+    [imgResult saveToFile:@"imgResult.png"];
+    self.imgResult = imgResult;
+    self.imgMaskView.image = self.imgResult;
+    return;
+    
+    
+    
+    
+    
+    
     
     
     /*
@@ -156,35 +212,6 @@
     */
     
     
-    
-    
-    
-    
-    
-    
-    // -----
-    
-    // C. input Image + imgMask
-    {
-        GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:imgInput];
-        GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgMask];
-
-        GPUImageSourceOverBlendFilter *maskFilter = [GPUImageSourceOverBlendFilter new];
-
-        [imgSource addTarget:maskFilter];
-        [imgSource processImage];
-
-        [maskFilter useNextFrameForImageCapture];
-
-        [imgSourceMask addTarget:maskFilter];
-        [imgSourceMask processImage];
-
-        imgResult = [maskFilter imageFromCurrentFramebuffer];
-    }
-    [imgResult saveToFile:@"imgResult.png"];
-    
-    self.imgResult = imgResult;
-    self.imgView.image = self.imgResult;
 }
 
 - (void)onHueActionWithImg:(UIImage *)imgInput val:(CGFloat)val
@@ -199,7 +226,7 @@
     [imgSource processImage];
     UIImage *imgResult = [hueFilter imageFromCurrentFramebuffer];
     
-    self.imgView.image = imgResult;
+    self.imgFullColorView.image = imgResult;
 }
 
 - (IBAction)onSplashColorRed:(id)sender
@@ -216,16 +243,13 @@
 
 - (IBAction)onOriginal:(id)sender
 {
-    self.imgView.image = self.imgInput;
-    self.imgResult = nil;
+    self.imgFullColorView.image = self.imgInput;
+    self.imgMaskView.image = nil;
 }
 
 - (IBAction)onSliderValChanged:(UISlider *)sender
 {
-    if (!self.imgResult)
-        return;
-    
-    [self onHueActionWithImg:self.imgResult val:sender.value];
+    [self onHueActionWithImg:self.imgInput val:sender.value];
 }
 
 @end

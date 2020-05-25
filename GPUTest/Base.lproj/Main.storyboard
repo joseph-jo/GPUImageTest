@@ -51,6 +51,9 @@
                                     <constraint firstAttribute="width" secondItem="eQR-YR-INA" secondAttribute="height" multiplier="414:450" id="9tP-Jc-3oz"/>
                                 </constraints>
                             </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Jab-GS-Sge" userLabel="Mask View">
+                                <rect key="frame" x="0.0" y="223" width="414" height="450"/>
+                            </imageView>
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="msl-sS-oG9">
                                 <rect key="frame" x="24" y="779" width="366" height="36"/>
                                 <constraints>
@@ -72,13 +75,17 @@
                             <constraint firstAttribute="trailing" secondItem="msl-sS-oG9" secondAttribute="trailing" constant="26" id="FIS-Ii-c2I"/>
                             <constraint firstItem="CU4-Iy-4tg" firstAttribute="leading" secondItem="4yV-hw-jqC" secondAttribute="trailing" constant="8" id="LYg-Fs-6RE"/>
                             <constraint firstItem="CU4-Iy-4tg" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="24" id="M0R-LG-WjB"/>
+                            <constraint firstItem="Jab-GS-Sge" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="NyT-rM-gBK"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="qq1-la-5Qp" secondAttribute="trailing" constant="8" id="Unc-Ze-wNb"/>
                             <constraint firstItem="msl-sS-oG9" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="26" id="WEF-yL-w9B"/>
                             <constraint firstItem="eQR-YR-INA" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="cES-db-1bQ"/>
                             <constraint firstItem="qq1-la-5Qp" firstAttribute="top" secondItem="CU4-Iy-4tg" secondAttribute="top" id="dZJ-2f-OMR"/>
                             <constraint firstItem="msl-sS-oG9" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="hVw-zD-9hO"/>
                             <constraint firstItem="4yV-hw-jqC" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="8" id="idv-xJ-dLH"/>
+                            <constraint firstItem="Jab-GS-Sge" firstAttribute="width" secondItem="eQR-YR-INA" secondAttribute="width" id="j7t-1l-uwk"/>
                             <constraint firstItem="eQR-YR-INA" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="kXt-RX-KaP"/>
+                            <constraint firstItem="Jab-GS-Sge" firstAttribute="height" secondItem="eQR-YR-INA" secondAttribute="height" id="s7a-Ra-B4S"/>
+                            <constraint firstItem="Jab-GS-Sge" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="ynh-OS-UGP"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
@@ -86,7 +93,8 @@
                         <outlet property="btnColor1" destination="4yV-hw-jqC" id="WnD-6i-LGS"/>
                         <outlet property="btnColor2" destination="CU4-Iy-4tg" id="cwF-Kz-y4f"/>
                         <outlet property="btnOriginal" destination="qq1-la-5Qp" id="8m6-mJ-BZG"/>
-                        <outlet property="imgView" destination="eQR-YR-INA" id="d96-jJ-R7q"/>
+                        <outlet property="imgFullColorView" destination="eQR-YR-INA" id="d96-jJ-R7q"/>
+                        <outlet property="imgMaskView" destination="Jab-GS-Sge" id="82f-cP-JuN"/>
                         <outlet property="sliderHue" destination="msl-sS-oG9" id="Hbu-DA-EMu"/>
                     </connections>
                 </viewController>
