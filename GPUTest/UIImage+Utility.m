@@ -7,7 +7,7 @@
 //
 
 #import "UIImage+Utility.h"
-#define DEBUG_IMG
+//#define DEBUG_IMG
 
 @implementation UIImage (Utility)
 

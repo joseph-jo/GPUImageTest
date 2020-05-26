@@ -156,6 +156,118 @@
     [imgResult saveToFile:@"imgResult.png"];
     self.imgResult = imgResult;
     self.imgMaskView.image = self.imgResult;
+    
+    
+    
+    // Inverted blackwhite mask
+    UIImage *imgInvertedBlackWhiteMask = nil;
+    {
+        GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgBlackWhiteMask];
+        
+        GPUImageColorInvertFilter *invertFilter = [GPUImageColorInvertFilter new];
+        
+        [imgSourceMask addTarget:invertFilter];
+        [imgSourceMask processImage];
+        
+        [invertFilter useNextFrameForImageCapture];
+        imgInvertedBlackWhiteMask = [invertFilter imageFromCurrentFramebuffer];
+    }
+    
+    // imgFullColor + Inverted blackwhite mask
+    {
+        GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:self.imgInput];
+        GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgInvertedBlackWhiteMask];
+        
+        GPUImageMaskFilter *maskFilter = [GPUImageMaskFilter new];
+        [imgSource addTarget:maskFilter];
+        [imgSource processImage];
+        
+        [maskFilter useNextFrameForImageCapture];
+        
+        [imgSourceMask addTarget:maskFilter];
+        [imgSourceMask processImage];
+        
+        imgResult = [maskFilter imageFromCurrentFramebuffer];
+    }
+    [imgResult saveToFile:@"imgFullColor_BlackWhiteMask.png"];
+    
+    // Then + GrayScaled Image -> Splashed Image
+    {
+        
+        GPUImagePicture *imgSourceGrayScaled = [[GPUImagePicture alloc] initWithImage:imgGrayscaled];
+        GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:imgResult];
+        
+        GPUImageNormalBlendFilter *filter = [GPUImageNormalBlendFilter new];
+        
+        [imgSourceGrayScaled addTarget:filter];
+        [imgSourceGrayScaled processImage];
+
+        [filter useNextFrameForImageCapture];
+        
+        [imgSource addTarget:filter];
+        [imgSource processImage];
+
+        imgResult = [filter imageFromCurrentFramebuffer];
+    }
+    [imgResult saveToFile:@"imgFullColor_BlackWhiteMask_Grayscaled.png"];
+    
+    // Try to Use Grayscaled - Splahed img
+    {
+        GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:imgGrayscaled];
+        GPUImagePicture *imgSourceSpalshed = [[GPUImagePicture alloc] initWithImage:imgResult];
+        
+        GPUImageSubtractBlendFilter *maskFilter = [GPUImageSubtractBlendFilter new];
+        
+        [imgSourceSpalshed addTarget:maskFilter];
+        [imgSourceSpalshed processImage];
+        
+        [maskFilter useNextFrameForImageCapture];
+        
+        [imgSource addTarget:maskFilter];
+        [imgSource processImage];
+        
+        
+        imgResult = [maskFilter imageFromCurrentFramebuffer];
+    }
+    [imgResult saveToFile:@"imgSub.png"];
+    
+    // Try to transfer to blackwhite again
+    UIImage *imgSubInv = nil;
+    {
+        GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:imgResult];
+        GPUImageColorInvertFilter *invertFilter = [GPUImageColorInvertFilter new];
+
+        [imgSource addTarget:invertFilter];
+        [imgSource processImage];
+
+        [invertFilter useNextFrameForImageCapture];
+        imgSubInv = [invertFilter imageFromCurrentFramebuffer];
+        [imgSubInv saveToFile:@"imgSub_Inv.png"];
+         
+        
+        
+        //...
+        UIImage *imgBlack = [UIImage imageFromColor:[UIColor whiteColor] size:imgResult.size];
+        {
+            GPUImagePicture *imgSource = [[GPUImagePicture alloc] initWithImage:self.imgInput];
+            GPUImagePicture *imgSourceMask = [[GPUImagePicture alloc] initWithImage:imgSubInv];
+
+            GPUImageMaskFilter *maskFilter = [GPUImageMaskFilter new];
+            
+            [imgSource addTarget:maskFilter];
+            [imgSource processImage];
+
+            [maskFilter useNextFrameForImageCapture];
+            
+            [imgSourceMask addTarget:maskFilter];
+            [imgSourceMask processImage];
+
+            imgBlackWhiteMask = [maskFilter imageFromCurrentFramebuffer];
+            [imgBlackWhiteMask saveToFile:@"imgTry1.png"];
+        }
+        
+        
+    }
     return;
     
     
